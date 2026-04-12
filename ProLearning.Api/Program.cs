@@ -56,8 +56,8 @@ app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string edu
             .SelectMany(l => l.LearningActivities)
             .Select(a => new
             {
-                a.Name,
-                Score = 
+                name = a.Name,
+                score = 
                     a.InterestAreaScoreBoosts
                         .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name))
                         .Select(e => e.Score)
@@ -65,9 +65,20 @@ app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string edu
                     a.GoalScoreBoosts
                         .Where(e => ((IEnumerable<string>)goals).Contains(e.Goal.Name))
                         .Select(e => e.Score)
-                        .Sum()
+                        .Sum(),
+                scoreBreakdown = new
+                {
+                    interestAreas = 
+                        a.InterestAreaScoreBoosts
+                            .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name))
+                            .Select(e => new { interestArea = e.InterestArea.Name, score = e.Score }),
+                    goals =
+                        a.GoalScoreBoosts
+                            .Where(e => ((IEnumerable<string>)goals).Contains(e.Goal.Name))
+                            .Select(e => new { interestArea = e.Goal.Name, score = e.Score })
+                }
             })
-            .OrderBy(a => a.Score)
+            .OrderBy(a => a.score)
             .Take(limit)
             .ToListAsync();
 
