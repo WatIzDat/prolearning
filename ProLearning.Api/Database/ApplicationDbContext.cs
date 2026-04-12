@@ -8,6 +8,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<LearningActivity> LearningActivities { get; set; }
     public DbSet<EducationLevel> EducationLevels { get; set; }
+    public DbSet<InterestArea> InterestAreas { get; set; }
+    public DbSet<Goal> Goals { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,5 +24,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasMany(e => e.Goals)
             .WithMany(e => e.LearningActivities)
             .UsingEntity<GoalScoreBoost>();
+
+        modelBuilder.Entity<InterestArea>()
+            .Property(e => e.Name)
+            .HasColumnType("citext");
+        
+        modelBuilder.Entity<Goal>()
+            .Property(e => e.Name)
+            .HasColumnType("citext");
     }
 }
