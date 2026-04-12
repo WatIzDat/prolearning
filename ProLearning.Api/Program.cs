@@ -40,9 +40,28 @@ app.MapGet("/weatherforecast", () =>
     })
     .WithName("GetWeatherForecast");
 
-app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string grade, string[] interestAreas, string[] goals) =>
+app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string grade, string[] interestAreas, string[] goals, int limit) =>
 {
-    List<LearningActivity> learningActivities = await dbContext.EducationLevels.Where(l => l.Name.Equals(educationLevel, StringComparison.InvariantCultureIgnoreCase)).SelectMany(l => l.LearningActivities).ToListAsync();
+    var learningActivities =
+        await dbContext.EducationLevels
+            .Where(l => l.Name.Equals(educationLevel, StringComparison.OrdinalIgnoreCase))
+            .SelectMany(l => l.LearningActivities)
+            .Select(a => new
+            {
+                a.Name,
+                Score = 
+                    a.InterestAreaScoreBoosts
+                        .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name, StringComparer.OrdinalIgnoreCase))
+                        .Select(e => e.Score)
+                        .Sum() + 
+                    a.GoalScoreBoosts
+                        .Where(e => ((IEnumerable<string>)goals).Contains(e.Goal.Name, StringComparer.OrdinalIgnoreCase))
+                        .Select(e => e.Score)
+                        .Sum()
+            })
+            .OrderBy(a => a.Score)
+            .Take(limit)
+            .ToListAsync();
 
     return learningActivities;
 });
