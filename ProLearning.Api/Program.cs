@@ -48,7 +48,7 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapLearningActivityEndpoints();
 
-app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string grade, string[] interestAreas, string[] goals, int limit) =>
+app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string[] interestAreas, string[] goals, int limit) =>
 {
     var learningActivities =
         await dbContext.EducationLevels
