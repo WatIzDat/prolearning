@@ -1,0 +1,18 @@
+﻿services:
+  prolearning.api:
+    image: prolearning.api
+    build:
+      context: .
+      dockerfile: ProLearning.Api/Dockerfile
+    depends_on:
+      - database
+  database:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: default_database
+    volumes:
+      - ${PWD}/db-data/:/var/lib/postgresql/data/
