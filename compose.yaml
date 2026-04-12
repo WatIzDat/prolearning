@@ -1,6 +1,8 @@
 ﻿services:
   prolearning.api:
     image: prolearning.api
+    ports:
+      - "5075:8080"
     build:
       context: .
       dockerfile: ProLearning.Api/Dockerfile

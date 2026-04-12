@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using ProLearning.Api.ApiKey;
 using ProLearning.Api.Database;
-using ProLearning.Api.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +10,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+
+builder.Services.AddTransient<IApiKeyValidator, ApiKeyValidator>();
 
 var app = builder.Build();
 
@@ -39,6 +41,11 @@ app.MapGet("/weatherforecast", () =>
         return forecast;
     })
     .WithName("GetWeatherForecast");
+
+app.MapPost("/learningactivity", (ApplicationDbContext dbContext) =>
+{
+    return "is admin";
+}).AddEndpointFilter<ApiKeyEndpointFilter>();
 
 app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string grade, string[] interestAreas, string[] goals, int limit) =>
 {
