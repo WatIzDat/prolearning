@@ -58,9 +58,25 @@ public static class LearningActivityEndpoints
             {
                 id = learningActivity.Id,
                 name = learningActivity.Name,
-                educationLevels = learningActivity.EducationLevels.Select(l => l.Name),
-                interestAreaScoreBoosts = learningActivity.InterestAreaScoreBoosts.Select(b => new { interestArea = b.InterestArea.Name, score = b.Score }),
-                goalScoreBoosts = learningActivity.GoalScoreBoosts.Select(b => new { goal = b.Goal.Name, score = b.Score })
+                educationLevels = learningActivity.EducationLevels
+                    .Select(l => l.Name),
+                interestAreaScoreBoosts = learningActivity.InterestAreaScoreBoosts
+                    .GroupBy(
+                        b => b.InterestArea,
+                        b => new { skillLevel = b.SkillLevel, score = b.Score },
+                        (key, g) => new { interestArea = key.Name, skillLevelScoreBoosts = g }),
+                    // .Select(b => new
+                    // {
+                    //     interestArea = b.InterestArea.Name,
+                    //     skillLevel = b.SkillLevel,
+                    //     score = b.Score
+                    // }),
+                goalScoreBoosts = learningActivity.GoalScoreBoosts
+                    .Select(b => new
+                    {
+                        goal = b.Goal.Name,
+                        score = b.Score
+                    })
             });
     }
 
@@ -134,8 +150,9 @@ public static class LearningActivityEndpoints
                 request.InterestAreaScoreBoosts,
                 a => a.Name,
                 b => b.InterestArea,
-                (a, b) => new InterestAreaScoreBoost { InterestArea = a, Score = b.Score },
+                (a, b) => b.SkillLevelScoreBoosts.Select(slb => new InterestAreaScoreBoost { InterestArea = a, SkillLevel = slb.SkillLevel, Score = slb.Score }),
                 StringComparer.OrdinalIgnoreCase)
+            .SelectMany(x => x)
             .ToList();
     
         List<string> goalNames = request.GoalScoreBoosts.Select(b => b.Goal).ToList();

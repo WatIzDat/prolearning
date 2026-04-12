@@ -48,8 +48,11 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapLearningActivityEndpoints();
 
-app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string[] interestAreas, string[] goals, int limit) =>
+app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string[] interestAreas, int[] skillLevels, string[] goals, int limit) =>
 {
+    if (interestAreas.Length != skillLevels.Length)
+        return Results.BadRequest();
+    
     var learningActivities =
         await dbContext.EducationLevels
             .Where(l => l.Name == educationLevel)
@@ -59,7 +62,7 @@ app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string edu
                 name = a.Name,
                 score = 
                     a.InterestAreaScoreBoosts
-                        .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name))
+                        .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name) && skillLevels[interestAreas.ToList().IndexOf(e.InterestArea.Name)] == (int)e.SkillLevel)
                         .Select(e => e.Score)
                         .Sum() + 
                     a.GoalScoreBoosts
@@ -70,8 +73,8 @@ app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string edu
                 {
                     interestAreas = 
                         a.InterestAreaScoreBoosts
-                            .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name))
-                            .Select(e => new { interestArea = e.InterestArea.Name, score = e.Score }),
+                            .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name) && skillLevels[interestAreas.ToList().IndexOf(e.InterestArea.Name)] == (int)e.SkillLevel)
+                            .Select(e => new { interestArea = e.InterestArea.Name, skillLevel = e.SkillLevel, score = e.Score }),
                     goals =
                         a.GoalScoreBoosts
                             .Where(e => ((IEnumerable<string>)goals).Contains(e.Goal.Name))
@@ -82,7 +85,7 @@ app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string edu
             .Take(limit)
             .ToListAsync();
 
-    return learningActivities;
+    return Results.Ok(learningActivities);
 });
 
 app.Run();

@@ -1,4 +1,6 @@
-﻿namespace ProLearning.Api.Requests;
+﻿using ProLearning.Api.Domain.Recommendation;
+
+namespace ProLearning.Api.Requests;
 
 public class CreateLearningActivityRequest
 {
@@ -10,7 +12,13 @@ public class CreateLearningActivityRequest
     public class InterestAreaScoreBoost
     {
         public string InterestArea { get; set; }
-        public int Score { get; set; }
+        public SkillLevelScoreBoost[] SkillLevelScoreBoosts { get; set; }
+
+        public class SkillLevelScoreBoost
+        {
+            public SkillLevel SkillLevel { get; set; }
+            public int Score { get; set; }
+        }
     }
     
     public class GoalScoreBoost

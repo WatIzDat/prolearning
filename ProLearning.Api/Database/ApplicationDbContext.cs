@@ -18,7 +18,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<LearningActivity>()
             .HasMany(e => e.InterestAreas)
             .WithMany(e => e.LearningActivities)
-            .UsingEntity<InterestAreaScoreBoost>();
+            .UsingEntity<InterestAreaScoreBoost>(b =>
+            {
+                b.HasKey(e => new { e.LearningActivityId, e.InterestAreaId, e.SkillLevel });
+            });
         
         modelBuilder.Entity<LearningActivity>()
             .HasMany(e => e.Goals)

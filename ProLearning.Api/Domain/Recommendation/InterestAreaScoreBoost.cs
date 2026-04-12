@@ -6,5 +6,6 @@ public class InterestAreaScoreBoost
     public LearningActivity LearningActivity { get; init; }
     public int InterestAreaId { get; init; }
     public InterestArea InterestArea { get; init; }
+    public SkillLevel SkillLevel { get; init; }
     public int Score { get; init; }
 }
