@@ -24,6 +24,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasMany(e => e.Goals)
             .WithMany(e => e.LearningActivities)
             .UsingEntity<GoalScoreBoost>();
+        
+        modelBuilder.Entity<EducationLevel>()
+            .Property(e => e.Name)
+            .HasColumnType("citext");
 
         modelBuilder.Entity<InterestArea>()
             .Property(e => e.Name)

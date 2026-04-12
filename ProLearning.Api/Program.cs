@@ -100,7 +100,7 @@ app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string edu
 {
     var learningActivities =
         await dbContext.EducationLevels
-            .Where(l => l.Name.Equals(educationLevel, StringComparison.OrdinalIgnoreCase))
+            .Where(l => l.Name == educationLevel)
             .SelectMany(l => l.LearningActivities)
             .Select(a => new
             {
