@@ -1,8 +1,8 @@
 ﻿using ProLearning.Api.Domain.Recommendation;
 
-namespace ProLearning.Api.Requests;
+namespace ProLearning.Api.Endpoints.LearningActivities;
 
-public class CreateLearningActivityRequest
+public class LearningActivityDto
 {
     public string Name { get; set; }
     public List<string> EducationLevels { get; set; }

@@ -1,10 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using ProLearning.Api;
 using ProLearning.Api.ApiKey;
 using ProLearning.Api.Database;
-using ProLearning.Api.Domain;
-using ProLearning.Api.Domain.Recommendation;
-using ProLearning.Api.Endpoints;
-using ProLearning.Api.Requests;
+using ProLearning.Api.Endpoints.LearningActivities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,7 +88,10 @@ app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string edu
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+namespace ProLearning.Api
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+    {
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
 }

@@ -1,17 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using ProLearning.Api.ApiKey;
 using ProLearning.Api.Database;
 using ProLearning.Api.Domain;
 using ProLearning.Api.Domain.Recommendation;
-using ProLearning.Api.Requests;
+using ProLearning.Api.Endpoints.LearningActivities.Responses;
 
-namespace ProLearning.Api.Endpoints;
+namespace ProLearning.Api.Endpoints.LearningActivities;
 
 public static class LearningActivityEndpoints
 {
     public static void MapLearningActivityEndpoints(this IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup("/learningactivity").AddEndpointFilter<ApiKeyEndpointFilter>();
+        RouteGroupBuilder group = app
+            .MapGroup("/learningactivity")
+            .AddEndpointFilter<ApiKeyEndpointFilter>()
+            .ProducesProblem(400)
+            .ProducesProblem(401);
 
         group.MapGet("", GetLearningActivity);
         group.MapPost("", CreateLearningActivity);
@@ -19,7 +24,7 @@ public static class LearningActivityEndpoints
         group.MapDelete("{id:int}", DeleteLearningActivity);
     }
 
-    public static async Task<IResult> GetLearningActivity(ApplicationDbContext dbContext, int? id, string? name)
+    public static async Task<Results<Ok<GetLearningActivityResponse>, BadRequest, NotFound>> GetLearningActivity(ApplicationDbContext dbContext, int? id, string? name)
     {
         LearningActivity? learningActivity;
         
@@ -49,52 +54,52 @@ public static class LearningActivityEndpoints
         }
         else
         {
-            return Results.BadRequest();
+            return TypedResults.BadRequest();
         }
 
         return learningActivity == null ? 
-            Results.NotFound() :
-            Results.Ok(new
+            TypedResults.NotFound() :
+            TypedResults.Ok(new GetLearningActivityResponse
             {
-                id = learningActivity.Id,
-                name = learningActivity.Name,
-                educationLevels = learningActivity.EducationLevels
+                Id = learningActivity.Id,
+                Name = learningActivity.Name,
+                EducationLevels = learningActivity.EducationLevels
                     .Select(l => l.Name),
-                interestAreaScoreBoosts = learningActivity.InterestAreaScoreBoosts
+                InterestAreaScoreBoosts = learningActivity.InterestAreaScoreBoosts
                     .GroupBy(
                         b => b.InterestArea,
-                        b => new { skillLevel = b.SkillLevel, score = b.Score },
-                        (key, g) => new { interestArea = key.Name, skillLevelScoreBoosts = g }),
-                    // .Select(b => new
-                    // {
-                    //     interestArea = b.InterestArea.Name,
-                    //     skillLevel = b.SkillLevel,
-                    //     score = b.Score
-                    // }),
-                goalScoreBoosts = learningActivity.GoalScoreBoosts
-                    .Select(b => new
+                        b => new LearningActivityDto.InterestAreaScoreBoost.SkillLevelScoreBoost
+                        {
+                            SkillLevel = b.SkillLevel, Score = b.Score
+                        },
+                        (key, g) => new LearningActivityDto.InterestAreaScoreBoost
+                        {
+                            InterestArea = key.Name, SkillLevelScoreBoosts = g.ToArray()
+                        }),
+                GoalScoreBoosts = learningActivity.GoalScoreBoosts
+                    .Select(b => new LearningActivityDto.GoalScoreBoost
                     {
-                        goal = b.Goal.Name,
-                        score = b.Score
+                        Goal = b.Goal.Name,
+                        Score = b.Score
                     })
             });
     }
 
-    public static async Task<IResult> CreateLearningActivity(ApplicationDbContext dbContext,
-        CreateLearningActivityRequest request)
+    public static async Task<NoContent> CreateLearningActivity(ApplicationDbContext dbContext,
+        LearningActivityDto dto)
     {
-        LearningActivity learningActivity = await RequestToLearningActivity(dbContext, request);
+        LearningActivity learningActivity = await MapLearningActivityDto(dbContext, dto);
 
         dbContext.LearningActivities.Add(learningActivity);
     
         await dbContext.SaveChangesAsync();
 
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> UpdateLearningActivity(ApplicationDbContext dbContext,
+    public static async Task<Results<NoContent, NotFound>> UpdateLearningActivity(ApplicationDbContext dbContext,
         int id,
-        CreateLearningActivityRequest request)
+        LearningActivityDto dto)
     {
         LearningActivity? learningActivity =
             await dbContext.LearningActivities
@@ -105,9 +110,9 @@ public static class LearningActivityEndpoints
                 .FirstOrDefaultAsync();
         
         if (learningActivity == null)
-            return Results.NotFound();
+            return TypedResults.NotFound();
         
-        LearningActivity requestLearningActivity = await RequestToLearningActivity(dbContext, request, id);
+        LearningActivity requestLearningActivity = await MapLearningActivityDto(dbContext, dto, id);
         
         learningActivity.Name = requestLearningActivity.Name;
         learningActivity.EducationLevels = requestLearningActivity.EducationLevels;
@@ -116,30 +121,30 @@ public static class LearningActivityEndpoints
         
         await dbContext.SaveChangesAsync();
         
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteLearningActivity(ApplicationDbContext dbContext, int id)
+    public static async Task<Results<NoContent, NotFound>> DeleteLearningActivity(ApplicationDbContext dbContext, int id)
     {
         LearningActivity? learningActivity = await dbContext.LearningActivities.FindAsync(id);
         
         if (learningActivity == null)
-            return Results.NotFound();
+            return TypedResults.NotFound();
 
         dbContext.LearningActivities.Remove(learningActivity);
 
         await dbContext.SaveChangesAsync();
         
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    private static async Task<LearningActivity> RequestToLearningActivity(ApplicationDbContext dbContext, CreateLearningActivityRequest request, int id = 0)
+    private static async Task<LearningActivity> MapLearningActivityDto(ApplicationDbContext dbContext, LearningActivityDto dto, int id = 0)
     {
         List<EducationLevel> educationLevels = await dbContext.EducationLevels
-            .Where(l => request.EducationLevels.Contains(l.Name))
+            .Where(l => dto.EducationLevels.Contains(l.Name))
             .ToListAsync();
 
-        List<string> interestAreaNames = request.InterestAreaScoreBoosts.Select(b => b.InterestArea).ToList();
+        List<string> interestAreaNames = dto.InterestAreaScoreBoosts.Select(b => b.InterestArea).ToList();
 
         List<InterestArea> interestAreas = await dbContext.InterestAreas
             .Where(a => interestAreaNames.Contains(a.Name))
@@ -147,7 +152,7 @@ public static class LearningActivityEndpoints
 
         List<InterestAreaScoreBoost> interestAreaScoreBoosts = interestAreas
             .Join(
-                request.InterestAreaScoreBoosts,
+                dto.InterestAreaScoreBoosts,
                 a => a.Name,
                 b => b.InterestArea,
                 (a, b) => b.SkillLevelScoreBoosts.Select(slb => new InterestAreaScoreBoost { InterestArea = a, SkillLevel = slb.SkillLevel, Score = slb.Score }),
@@ -155,7 +160,7 @@ public static class LearningActivityEndpoints
             .SelectMany(x => x)
             .ToList();
     
-        List<string> goalNames = request.GoalScoreBoosts.Select(b => b.Goal).ToList();
+        List<string> goalNames = dto.GoalScoreBoosts.Select(b => b.Goal).ToList();
 
         List<Goal> goals = await dbContext.Goals
             .Where(g => goalNames.Contains(g.Name))
@@ -163,7 +168,7 @@ public static class LearningActivityEndpoints
 
         List<GoalScoreBoost> goalScoreBoosts = goals
             .Join(
-                request.GoalScoreBoosts,
+                dto.GoalScoreBoosts,
                 g => g.Name,
                 b => b.Goal,
                 (g, b) => new GoalScoreBoost { Goal = g, Score = b.Score },
@@ -173,7 +178,7 @@ public static class LearningActivityEndpoints
         LearningActivity learningActivity = new()
         {
             Id = id,
-            Name = request.Name,
+            Name = dto.Name,
             EducationLevels = educationLevels,
             InterestAreaScoreBoosts = interestAreaScoreBoosts,
             GoalScoreBoosts = goalScoreBoosts
