@@ -3,6 +3,7 @@ using ProLearning.Api;
 using ProLearning.Api.ApiKey;
 using ProLearning.Api.Database;
 using ProLearning.Api.Endpoints.LearningActivities;
+using ProLearning.Api.Endpoints.Recommendations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,46 +46,7 @@ app.MapGet("/weatherforecast", () =>
     .WithName("GetWeatherForecast");
 
 app.MapLearningActivityEndpoints();
-
-app.MapGet("/recommendations", async (ApplicationDbContext dbContext, string educationLevel, string[] interestAreas, int[] skillLevels, string[] goals, int limit) =>
-{
-    if (interestAreas.Length != skillLevels.Length)
-        return Results.BadRequest();
-    
-    var learningActivities =
-        await dbContext.EducationLevels
-            .Where(l => l.Name == educationLevel)
-            .SelectMany(l => l.LearningActivities)
-            .Select(a => new
-            {
-                name = a.Name,
-                score = 
-                    a.InterestAreaScoreBoosts
-                        .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name) && skillLevels[interestAreas.ToList().IndexOf(e.InterestArea.Name)] == (int)e.SkillLevel)
-                        .Select(e => e.Score)
-                        .Sum() + 
-                    a.GoalScoreBoosts
-                        .Where(e => ((IEnumerable<string>)goals).Contains(e.Goal.Name))
-                        .Select(e => e.Score)
-                        .Sum(),
-                scoreBreakdown = new
-                {
-                    interestAreas = 
-                        a.InterestAreaScoreBoosts
-                            .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name) && skillLevels[interestAreas.ToList().IndexOf(e.InterestArea.Name)] == (int)e.SkillLevel)
-                            .Select(e => new { interestArea = e.InterestArea.Name, skillLevel = e.SkillLevel, score = e.Score }),
-                    goals =
-                        a.GoalScoreBoosts
-                            .Where(e => ((IEnumerable<string>)goals).Contains(e.Goal.Name))
-                            .Select(e => new { interestArea = e.Goal.Name, score = e.Score })
-                }
-            })
-            .OrderBy(a => a.score)
-            .Take(limit)
-            .ToListAsync();
-
-    return Results.Ok(learningActivities);
-});
+app.MapRecommendationsEndpoints();
 
 app.Run();
 
