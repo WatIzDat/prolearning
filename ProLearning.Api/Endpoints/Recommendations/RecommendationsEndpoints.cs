@@ -74,7 +74,7 @@ public static class RecommendationsEndpoints
                                 .Select(e => new GetRecommendationsResponse.ScoreBreakdownDto.GoalScoreBreakdown { Goal = e.Goal.Name, Score = e.Score })
                     }
                 })
-                .OrderBy(a => a.Score)
+                .OrderByDescending(a => a.Score)
                 .Take(limit)
                 .ToListAsync();
 

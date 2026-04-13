@@ -25,6 +25,8 @@ public static class LearningActivityEndpoints
         group.MapPost("", CreateLearningActivity);
         group.MapPut("{id:int}", UpdateLearningActivity);
         group.MapDelete("{id:int}", DeleteLearningActivity);
+
+        app.MapPost("/learningactivities", CreateLearningActivities);
     }
 
     public static async Task<Results<Ok<GetLearningActivityResponse>, BadRequest<HttpValidationProblemDetails>, NotFound>> GetLearningActivity(ApplicationDbContext dbContext, int? id, string? name)
@@ -110,6 +112,30 @@ public static class LearningActivityEndpoints
         LearningActivity learningActivity = await MapLearningActivityDto(dbContext, dto);
 
         dbContext.LearningActivities.Add(learningActivity);
+    
+        await dbContext.SaveChangesAsync();
+
+        return TypedResults.NoContent();
+    }
+
+    public static async Task<Results<NoContent, BadRequest<HttpValidationProblemDetails>>> CreateLearningActivities(ApplicationDbContext dbContext,
+        IValidator<List<LearningActivityDto>> validator,
+        List<LearningActivityDto> dtos)
+    {
+        ValidationResult? validationResult = await validator.ValidateAsync(dtos);
+
+        if (!validationResult.IsValid)
+        {
+            HttpValidationProblemDetails problemDetails =
+                ValidationHelper.CreateValidationProblemDetails(validationResult.ToDictionary(), "/learningactivities");
+
+            return TypedResults.BadRequest(problemDetails);
+        }
+
+        foreach (LearningActivityDto dto in dtos)
+        {
+            dbContext.LearningActivities.Add(await MapLearningActivityDto(dbContext, dto));
+        }
     
         await dbContext.SaveChangesAsync();
 
