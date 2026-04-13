@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ProLearning.Api;
 using ProLearning.Api.ApiKey;
@@ -10,6 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddProblemDetails();
+
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
@@ -47,6 +52,9 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapLearningActivityEndpoints();
 app.MapRecommendationsEndpoints();
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 app.Run();
 

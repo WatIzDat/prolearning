@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using ProLearning.Api.ApiKey;
 using ProLearning.Api.Database;
 using ProLearning.Api.Domain;
 using ProLearning.Api.Domain.Recommendation;
 using ProLearning.Api.Endpoints.LearningActivities.Responses;
+using ProLearning.Api.Shared;
 
 namespace ProLearning.Api.Endpoints.LearningActivities;
 
@@ -24,7 +27,7 @@ public static class LearningActivityEndpoints
         group.MapDelete("{id:int}", DeleteLearningActivity);
     }
 
-    public static async Task<Results<Ok<GetLearningActivityResponse>, BadRequest, NotFound>> GetLearningActivity(ApplicationDbContext dbContext, int? id, string? name)
+    public static async Task<Results<Ok<GetLearningActivityResponse>, BadRequest<HttpValidationProblemDetails>, NotFound>> GetLearningActivity(ApplicationDbContext dbContext, int? id, string? name)
     {
         LearningActivity? learningActivity;
         
@@ -54,7 +57,12 @@ public static class LearningActivityEndpoints
         }
         else
         {
-            return TypedResults.BadRequest();
+            HttpValidationProblemDetails problemDetails = ValidationHelper.CreateValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { "id", ["id or name must be specified."] }
+            }, "/learningactivity");
+            
+            return TypedResults.BadRequest(problemDetails);
         }
 
         return learningActivity == null ? 
@@ -85,9 +93,20 @@ public static class LearningActivityEndpoints
             });
     }
 
-    public static async Task<NoContent> CreateLearningActivity(ApplicationDbContext dbContext,
+    public static async Task<Results<NoContent, BadRequest<HttpValidationProblemDetails>>> CreateLearningActivity(ApplicationDbContext dbContext,
+        IValidator<LearningActivityDto> validator,
         LearningActivityDto dto)
     {
+        ValidationResult? validationResult = await validator.ValidateAsync(dto);
+
+        if (!validationResult.IsValid)
+        {
+            HttpValidationProblemDetails problemDetails =
+                ValidationHelper.CreateValidationProblemDetails(validationResult.ToDictionary(), "/learningactivity");
+
+            return TypedResults.BadRequest(problemDetails);
+        }
+        
         LearningActivity learningActivity = await MapLearningActivityDto(dbContext, dto);
 
         dbContext.LearningActivities.Add(learningActivity);
@@ -97,10 +116,21 @@ public static class LearningActivityEndpoints
         return TypedResults.NoContent();
     }
 
-    public static async Task<Results<NoContent, NotFound>> UpdateLearningActivity(ApplicationDbContext dbContext,
+    public static async Task<Results<NoContent, NotFound, BadRequest<HttpValidationProblemDetails>>> UpdateLearningActivity(ApplicationDbContext dbContext,
         int id,
+        IValidator<LearningActivityDto> validator,
         LearningActivityDto dto)
     {
+        ValidationResult? validationResult = await validator.ValidateAsync(dto);
+
+        if (!validationResult.IsValid)
+        {
+            HttpValidationProblemDetails problemDetails =
+                ValidationHelper.CreateValidationProblemDetails(validationResult.ToDictionary(), "/learningactivity");
+
+            return TypedResults.BadRequest(problemDetails);
+        }
+        
         LearningActivity? learningActivity =
             await dbContext.LearningActivities
                 .Include(a => a.EducationLevels)

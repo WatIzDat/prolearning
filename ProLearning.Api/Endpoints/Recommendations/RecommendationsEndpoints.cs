@@ -1,7 +1,12 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using System.ComponentModel.DataAnnotations;
+using FluentValidation;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using ProLearning.Api.Database;
+using ProLearning.Api.Endpoints.Recommendations.Requests;
 using ProLearning.Api.Endpoints.Recommendations.Responses;
+using ProLearning.Api.Shared;
+using ValidationResult = FluentValidation.Results.ValidationResult;
 
 namespace ProLearning.Api.Endpoints.Recommendations;
 
@@ -14,16 +19,32 @@ public static class RecommendationsEndpoints
         group.MapGet("", GetRecommendations);
     }
 
-    public static async Task<Results<BadRequest, Ok<List<GetRecommendationsResponse>>>> GetRecommendations(ApplicationDbContext dbContext,
-        string educationLevel,
+    public static async Task<Results<BadRequest<HttpValidationProblemDetails>, Ok<List<GetRecommendationsResponse>>>> GetRecommendations(ApplicationDbContext dbContext,
+        IValidator<GetRecommendationsRequest> validator,
         string[] interestAreas,
         int[] skillLevels,
         string[] goals,
-        int limit)
+        string educationLevel = "",
+        int limit = 0)
     {
+        GetRecommendationsRequest request = new()
+        {
+            EducationLevel = educationLevel,
+            InterestAreas = interestAreas,
+            SkillLevels = skillLevels,
+            Goals = goals,
+            Limit = limit
+        };
         
-        if (interestAreas.Length != skillLevels.Length)
-            return TypedResults.BadRequest();
+        ValidationResult? validationResult = await validator.ValidateAsync(request);
+
+        if (!validationResult.IsValid)
+        {
+            HttpValidationProblemDetails problemDetails =
+                ValidationHelper.CreateValidationProblemDetails(validationResult.ToDictionary(), "/recommendations");
+
+            return TypedResults.BadRequest(problemDetails);
+        }
     
         List<GetRecommendationsResponse> learningActivities =
             await dbContext.EducationLevels
