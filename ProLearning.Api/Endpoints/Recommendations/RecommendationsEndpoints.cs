@@ -53,6 +53,7 @@ public static class RecommendationsEndpoints
                 .Select(a => new GetRecommendationsResponse
                 {
                     Name = a.Name,
+                    Url = a.Url,
                     Score = 
                         a.InterestAreaScoreBoosts
                             .Where(e => ((IEnumerable<string>)interestAreas).Contains(e.InterestArea.Name) && skillLevels[interestAreas.ToList().IndexOf(e.InterestArea.Name)] == (int)e.SkillLevel)

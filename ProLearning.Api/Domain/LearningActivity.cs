@@ -6,6 +6,7 @@ public class LearningActivity
 {
     public int Id { get; init; }
     public string Name { get; set; }
+    public string Url { get; set; }
     public List<EducationLevel> EducationLevels { get; set; } = [];
     public List<InterestArea> InterestAreas { get; } = [];
     public List<InterestAreaScoreBoost> InterestAreaScoreBoosts { get; set; } = [];

@@ -27,17 +27,33 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasMany(e => e.Goals)
             .WithMany(e => e.LearningActivities)
             .UsingEntity<GoalScoreBoost>();
+
+        modelBuilder.Entity<LearningActivity>()
+            .HasIndex(e => e.Name)
+            .IsUnique();
         
         modelBuilder.Entity<EducationLevel>()
             .Property(e => e.Name)
             .HasColumnType("citext");
+        
+        modelBuilder.Entity<EducationLevel>()
+            .HasIndex(e => e.Name)
+            .IsUnique();
 
         modelBuilder.Entity<InterestArea>()
             .Property(e => e.Name)
             .HasColumnType("citext");
         
+        modelBuilder.Entity<InterestArea>()
+            .HasIndex(e => e.Name)
+            .IsUnique();
+        
         modelBuilder.Entity<Goal>()
             .Property(e => e.Name)
             .HasColumnType("citext");
+        
+        modelBuilder.Entity<Goal>()
+            .HasIndex(e => e.Name)
+            .IsUnique();
     }
 }

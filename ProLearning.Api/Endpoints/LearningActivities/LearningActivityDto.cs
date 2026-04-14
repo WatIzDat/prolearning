@@ -5,6 +5,7 @@ namespace ProLearning.Api.Endpoints.LearningActivities;
 public class LearningActivityDto
 {
     public string Name { get; set; }
+    public string Url { get; set; }
     public List<string> EducationLevels { get; set; }
     public InterestAreaScoreBoost[] InterestAreaScoreBoosts { get; set; }
     public GoalScoreBoost[] GoalScoreBoosts { get; set; }

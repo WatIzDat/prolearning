@@ -4,6 +4,7 @@ public class GetLearningActivityResponse
 {
     public int Id { get; set; }
     public string Name { get; set; }
+    public string Url { get; set; }
     public IEnumerable<string> EducationLevels { get; set; }
     public IEnumerable<LearningActivityDto.InterestAreaScoreBoost> InterestAreaScoreBoosts { get; set; }
     public IEnumerable<LearningActivityDto.GoalScoreBoost> GoalScoreBoosts { get; set; }

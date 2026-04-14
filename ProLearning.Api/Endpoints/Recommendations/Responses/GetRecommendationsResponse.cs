@@ -5,6 +5,7 @@ namespace ProLearning.Api.Endpoints.Recommendations.Responses;
 public class GetRecommendationsResponse
 {
     public string Name { get; set; }
+    public string Url { get; set; }
     public int Score { get; set; }
     public ScoreBreakdownDto ScoreBreakdown { get; set; }
 

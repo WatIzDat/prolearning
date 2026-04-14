@@ -73,6 +73,7 @@ public static class LearningActivityEndpoints
             {
                 Id = learningActivity.Id,
                 Name = learningActivity.Name,
+                Url = learningActivity.Url,
                 EducationLevels = learningActivity.EducationLevels
                     .Select(l => l.Name),
                 InterestAreaScoreBoosts = learningActivity.InterestAreaScoreBoosts
@@ -171,6 +172,7 @@ public static class LearningActivityEndpoints
         LearningActivity requestLearningActivity = await MapLearningActivityDto(dbContext, dto, id);
         
         learningActivity.Name = requestLearningActivity.Name;
+        learningActivity.Url = requestLearningActivity.Url;
         learningActivity.EducationLevels = requestLearningActivity.EducationLevels;
         learningActivity.InterestAreaScoreBoosts = requestLearningActivity.InterestAreaScoreBoosts;
         learningActivity.GoalScoreBoosts = requestLearningActivity.GoalScoreBoosts;
@@ -235,6 +237,7 @@ public static class LearningActivityEndpoints
         {
             Id = id,
             Name = dto.Name,
+            Url = dto.Url,
             EducationLevels = educationLevels,
             InterestAreaScoreBoosts = interestAreaScoreBoosts,
             GoalScoreBoosts = goalScoreBoosts
