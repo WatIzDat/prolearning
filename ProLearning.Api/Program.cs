@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using ProLearning.Api;
 using ProLearning.Api.ApiKey;
 using ProLearning.Api.Database;
+using ProLearning.Api.Endpoints.EducationLevels;
+using ProLearning.Api.Endpoints.Goals;
+using ProLearning.Api.Endpoints.InterestAreas;
 using ProLearning.Api.Endpoints.LearningActivities;
 using ProLearning.Api.Endpoints.Recommendations;
 
@@ -52,6 +55,9 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapLearningActivityEndpoints();
 app.MapRecommendationsEndpoints();
+app.MapEducationLevelEndpoints();
+app.MapInterestAreaEndpoints();
+app.MapGoalEndpoints();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
