@@ -1,4 +1,6 @@
-﻿namespace ProLearning.Api.Endpoints.Recommendations.Requests;
+﻿using ProLearning.Api.Shared.Pagination;
+
+namespace ProLearning.Api.Endpoints.Recommendations.Requests;
 
 public class GetRecommendationsRequest
 {
@@ -6,5 +8,5 @@ public class GetRecommendationsRequest
     public string[] InterestAreas { get; set; }
     public int[] SkillLevels { get; set; }
     public string[] Goals { get; set; }
-    public int Limit { get; set; }
+    public PagedRequest PagedRequest { get; set; }
 }

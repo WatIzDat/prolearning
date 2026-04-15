@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using ProLearning.Api.Endpoints.Recommendations.Requests;
+using ProLearning.Api.Shared.Pagination;
 
 namespace ProLearning.Api.Endpoints.Recommendations.Validators;
 
@@ -14,6 +15,6 @@ public class GetRecommendationsRequestValidator : AbstractValidator<GetRecommend
             .Must((r, x) => x.Length == r.InterestAreas.Length)
             .WithMessage("SkillLevels and InterestAreas must have the same length.");
         RuleFor(x => x.Goals).NotEmpty();
-        RuleFor(x => x.Limit).NotEmpty();
+        RuleFor(x => x.PagedRequest).SetValidator(new PagedRequestValidator());
     }
 }
