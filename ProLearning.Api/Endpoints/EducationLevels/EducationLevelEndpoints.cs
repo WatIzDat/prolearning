@@ -8,7 +8,7 @@ public static class EducationLevelEndpoints
 {
     public static void MapEducationLevelEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/educationlevel", GetEducationLevels);
+        app.MapGet("/educationlevel", GetEducationLevels).WithName("GetEducationLevels");
     }
 
     public static async Task<Ok<List<EducationLevelDto>>> GetEducationLevels(ApplicationDbContext dbContext)

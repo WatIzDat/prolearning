@@ -8,7 +8,7 @@ public static class InterestAreaEndpoints
 {
     public static void MapInterestAreaEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/interestarea", GetInterestAreas);
+        app.MapGet("/interestarea", GetInterestAreas).WithName("GetInterestAreas");
     }
 
     public static async Task<Ok<List<InterestAreaDto>>> GetInterestAreas(ApplicationDbContext dbContext)

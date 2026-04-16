@@ -8,7 +8,7 @@ public static class GoalEndpoints
 {
     public static void MapGoalEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/goal", GetGoals);
+        app.MapGet("/goal", GetGoals).WithName("GetGoals");
     }
 
     public static async Task<Ok<List<GoalDto>>> GetGoals(ApplicationDbContext dbContext)

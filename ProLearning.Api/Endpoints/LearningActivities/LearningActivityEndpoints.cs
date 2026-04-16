@@ -18,15 +18,19 @@ public static class LearningActivityEndpoints
         RouteGroupBuilder group = app
             .MapGroup("/learningactivity")
             .AddEndpointFilter<ApiKeyEndpointFilter>()
-            .ProducesProblem(400)
-            .ProducesProblem(401);
+            .ProducesProblem(401)
+            .RequireAuthorization();
 
-        group.MapGet("", GetLearningActivity);
-        group.MapPost("", CreateLearningActivity);
-        group.MapPut("{id:int}", UpdateLearningActivity);
-        group.MapDelete("{id:int}", DeleteLearningActivity);
+        group.MapGet("", GetLearningActivity).WithName("GetLearningActivity");
+        group.MapPost("", CreateLearningActivity).WithName("CreateLearningActivity");
+        group.MapPut("{id:int}", UpdateLearningActivity).WithName("UpdateLearningActivity");
+        group.MapDelete("{id:int}", DeleteLearningActivity).WithName("DeleteLearningActivity");
 
-        app.MapPost("/learningactivities", CreateLearningActivities);
+        app.MapPost("/learningactivities", CreateLearningActivities)
+            .WithName("CreateLearningActivities")
+            .AddEndpointFilter<ApiKeyEndpointFilter>()
+            .ProducesProblem(401)
+            .RequireAuthorization();
     }
 
     public static async Task<Results<Ok<GetLearningActivityResponse>, BadRequest<HttpValidationProblemDetails>, NotFound>> GetLearningActivity(ApplicationDbContext dbContext, int? id, string? name)
