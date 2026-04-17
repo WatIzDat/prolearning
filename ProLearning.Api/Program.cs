@@ -19,7 +19,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+    options.UseNpgsql(BuildConnectionString(builder.Configuration)));
 
 builder.Services.AddTransient<IApiKeyValidator, ApiKeyValidator>();
 
@@ -43,3 +43,31 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 app.Run();
+
+static string BuildConnectionString(IConfiguration configuration)
+{
+    string databaseUrl = configuration.GetConnectionString("Database")!;
+    
+    // Parse postgresql://user:password@host:port/dbname
+    try
+    {
+        Uri uri = new(databaseUrl);
+        string[] userInfo = uri.UserInfo.Split(':');
+
+        string connectionString = $"Host={uri.Host};" +
+                                  $"Port={uri.Port};" +
+                                  $"Database={uri.AbsolutePath.TrimStart('/')};" +
+                                  $"Username={userInfo[0]};" +
+                                  $"Password={userInfo[1]};" +
+                                  $"SSL Mode=Require;" +
+                                  $"Trust Server Certificate=true;";
+    
+        Console.WriteLine("Connection string: " + connectionString);
+    
+        return connectionString;
+    }
+    catch (UriFormatException)
+    {
+        return databaseUrl;
+    }
+}
