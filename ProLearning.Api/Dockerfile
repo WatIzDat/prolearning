@@ -7,10 +7,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ProLearning.Api/ProLearning.Api.csproj", "ProLearning.Api/"]
+COPY ["../ProLearning.Api.csproj", "ProLearning.Api/"]
 RUN dotnet restore "ProLearning.Api/ProLearning.Api.csproj"
-COPY . .
 WORKDIR "/src/ProLearning.Api"
+COPY . .
 RUN dotnet build "./ProLearning.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

@@ -4,10 +4,12 @@
     ports:
       - "5075:8080"
     build:
-      context: .
-      dockerfile: ProLearning.Api/Dockerfile
+      context: ProLearning.Api
+      dockerfile: Dockerfile
     depends_on:
       - database
+    environment:
+      ConnectionStrings__Database: "Host=database;Port=5432;Database=default_database;Username=postgres;Password=postgres;Include Error Detail=true"
   database:
     image: postgres:latest
     ports:
