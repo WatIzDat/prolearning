@@ -17,7 +17,7 @@ public static class RecommendationsEndpoints
     {
         RouteGroupBuilder group = app.MapGroup("/recommendations");
 
-        group.MapGet("", GetRecommendations);
+        group.MapGet("", GetRecommendations).WithName("GetRecommendations");
     }
 
     public static async Task<Results<BadRequest<HttpValidationProblemDetails>, Ok<PagedList<GetRecommendationsResponse>>>> GetRecommendations(ApplicationDbContext dbContext,
@@ -49,6 +49,32 @@ public static class RecommendationsEndpoints
         {
             HttpValidationProblemDetails problemDetails =
                 ValidationHelper.CreateValidationProblemDetails(validationResult.ToDictionary(), "/recommendations");
+
+            return TypedResults.BadRequest(problemDetails);
+        }
+        
+        int interestAreasCount = await dbContext.InterestAreas.Where(a => ((IEnumerable<string>)interestAreas).Contains(a.Name)).CountAsync();
+
+        if (interestAreasCount != interestAreas.Length)
+        {
+            HttpValidationProblemDetails problemDetails =
+                ValidationHelper.CreateValidationProblemDetails(new Dictionary<string, string[]>
+                {
+                    { "interestAreas", ["One or more interest areas is invalid."]}
+                }, "/recommendations");
+
+            return TypedResults.BadRequest(problemDetails);
+        }
+        
+        int goalsCount = await dbContext.Goals.Where(g => ((IEnumerable<string>)goals).Contains(g.Name)).CountAsync();
+
+        if (goalsCount != goals.Length)
+        {
+            HttpValidationProblemDetails problemDetails =
+                ValidationHelper.CreateValidationProblemDetails(new Dictionary<string, string[]>
+                {
+                    { "goals", ["One or more goals is invalid."]}
+                }, "/recommendations");
 
             return TypedResults.BadRequest(problemDetails);
         }
