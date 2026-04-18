@@ -28,7 +28,7 @@ public static class RecommendationsEndpoints
         string educationLevel = "",
         // int limit = 0,
         int page = 1,
-        int pageSize = 0)
+        int pageSize = 25)
     {
         GetRecommendationsRequest request = new()
         {
