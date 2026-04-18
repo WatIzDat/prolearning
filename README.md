@@ -1,6 +1,6 @@
 # ProLearning API
 
-An API built in C#/ASP.NET Core to find, get, and perform ProLearning tasks. This project mainly focuses on data and system design and aims to provide a well-structured API and database.
+An API built in C#/ASP.NET Core to find, get, and perform ProLearning tasks. This project mainly focuses on data and system design and aims to provide a well-structured API.
 
 The live deployment is at `https://prolearning-production.up.railway.app`
 
@@ -17,7 +17,9 @@ The main endpoint is `/recommendations`. Send a GET request to this endpoint wit
 
 To get possible values for `interestAreas` ,`goals`, and `educationLevel`,  send a GET request to endpoints `/interestarea`, `/goal`,  and `/educationlevel` respectively.
 
-You will get a response with the following schema:
+Each entry in skillLevels refers to the interestAreas entry with the corresponding index.
+
+You will then get a response with the following schema:
 ```json
 {
   "items": [
@@ -62,16 +64,45 @@ Make sure you have installed:
 Clone the repository:
 
     git clone https://github.com/WatIzDat/prolearning.git
-Inside the ProLearning.Api project folder, set the API key:
+Inside docker-compose.yaml, set the API key:
+```yaml
+services:
+  prolearning.api:
+    image: prolearning.api
+    ports:
+      - "5075:8080"
+    build:
+      context: ProLearning.Api
+      dockerfile: Dockerfile
+    depends_on:
+      - database
+    environment:
+      ApiKey: "your-api-key" # add this
+      ConnectionStrings__Database: "Host=database;Port=5432;Database=default_database;Username=postgres;Password=postgres;Include Error Detail=true"
+  database:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: default_database
+    volumes:
+      - ${PWD}/db-data/:/var/lib/postgresql/data/
+```
+Restore packages:
 
-    dotnet user-secrets set "ApiKey" "your-api-key"
+    dotnet restore
+
 Start Docker services (API and database):
 
     docker compose up
 Apply all database migrations:
 
     dotnet ef database update
-Connect to the Postgres database in any way you'd like (psql, pgAdmin, etc.) and execute `seed_db.sql` to seed the database. Use `"Host=localhost;Port=5433;Database=default_database;Username=postgres;Password=postgres;"` for the connection string.
+Connect to the Postgres database in any way you'd like (psql, pgAdmin, etc.) and execute `seed_db.sql` to seed the database:
+
+    psql -d default_database -h localhost -p 5433 -U postgres -f seed_db.sql
 
 Finally, make a POST request to `http://localhost:5075/learningactivities?apiKey=your-api-key` with the contents of `learningActivitiesSampleData.json` as the request body to add sample data to the database.
 ## Incomplete / Planned Features
@@ -99,3 +130,4 @@ Finally, make a POST request to `http://localhost:5075/learningactivities?apiKey
  - Railway (for deployment)
  - Widdershins (for docs generation)
  - AI for planning and decision-making, didn't use for writing code
+
